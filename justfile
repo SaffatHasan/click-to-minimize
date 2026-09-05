@@ -1,8 +1,12 @@
 set shell := ["powershell.exe", "-NoLogo", "-Command"]
 
-jar_name := "example.jar"
+jar_name := "click2minimize-plugin.jar"
 java_home := "c:\\Users\\Nayan\\Desktop\\runelite exploration\\HelloWorldPlugin\\jdk-11\\jdk-11.0.24+8"
 plugin_dir := env_var("USERPROFILE") + "\\.runelite\\plugins"
+
+# Run the plugin in developer mode
+run:
+    $env:JAVA_HOME='{{java_home}}'; .\gradlew.bat run
 
 # Build the jar file
 build:
