@@ -26,4 +26,14 @@ public interface Click2MinimizeConfig extends Config
 	{
 		return "";
 	}
+
+	@ConfigItem(
+		keyName = "cancelChatMessages",
+		name = "Cancel on Chat Message",
+		description = "Comma-separated list of chat messages that will cancel the automatic window minimize (e.g. 'inventory is too full')."
+	)
+	default String cancelChatMessages()
+	{
+		return "inventory is too full";
+	}
 }

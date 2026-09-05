@@ -5,6 +5,7 @@ import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
+import net.runelite.api.events.GameTick;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -37,12 +38,16 @@ public class Click2MinimizePlugin extends Plugin
 	private Click2MinimizeConfig config;
 
 	private Set<String> minimizeTargets = new HashSet<>();
+	private Set<String> cancelTargets = new HashSet<>();
+	
+	private int ticksUntilMinimize = -1;
 
 	@Override
 	protected void startUp() throws Exception
 	{
 		log.info("Click2Minimize started!");
 		parseTargets();
+		parseCancelTargets();
 	}
 
 	@Override
@@ -50,14 +55,22 @@ public class Click2MinimizePlugin extends Plugin
 	{
 		log.info("Click2Minimize stopped!");
 		minimizeTargets.clear();
+		cancelTargets.clear();
 	}
 
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event)
 	{
-		if (event.getGroup().equals("click2minimize") && event.getKey().equals("minimizeTargets"))
+		if (event.getGroup().equals("click2minimize"))
 		{
-			parseTargets();
+			if (event.getKey().equals("minimizeTargets"))
+			{
+				parseTargets();
+			}
+			else if (event.getKey().equals("cancelChatMessages"))
+			{
+				parseCancelTargets();
+			}
 		}
 	}
 
@@ -71,6 +84,21 @@ public class Click2MinimizePlugin extends Plugin
 		}
 
 		minimizeTargets = Arrays.stream(targetsString.split(","))
+			.map(String::trim)
+			.map(String::toLowerCase)
+			.collect(Collectors.toSet());
+	}
+
+	private void parseCancelTargets()
+	{
+		String cancelString = config.cancelChatMessages();
+		if (cancelString == null || cancelString.isEmpty())
+		{
+			cancelTargets.clear();
+			return;
+		}
+
+		cancelTargets = Arrays.stream(cancelString.split(","))
 			.map(String::trim)
 			.map(String::toLowerCase)
 			.collect(Collectors.toSet());
@@ -96,7 +124,46 @@ public class Click2MinimizePlugin extends Plugin
 
 		if (minimizeTargets.contains(actionString.toLowerCase()))
 		{
-			minimizeWindow();
+			// Delay minimize by 1 game tick to see if a rejection chat message appears in the same tick
+			ticksUntilMinimize = 1;
+		}
+	}
+
+	@Subscribe
+	public void onChatMessage(net.runelite.api.events.ChatMessage event)
+	{
+		if (event.getType() != ChatMessageType.GAMEMESSAGE && event.getType() != ChatMessageType.SPAM)
+		{
+			return;
+		}
+
+		String message = Text.removeTags(event.getMessage()).toLowerCase();
+
+		for (String cancelTarget : cancelTargets)
+		{
+			if (message.contains(cancelTarget))
+			{
+				if (ticksUntilMinimize > 0)
+				{
+					// Cancel the pending minimize
+					ticksUntilMinimize = -1;
+				}
+				break;
+			}
+		}
+	}
+
+	@Subscribe
+	public void onGameTick(GameTick event)
+	{
+		if (ticksUntilMinimize > 0)
+		{
+			ticksUntilMinimize--;
+			if (ticksUntilMinimize == 0)
+			{
+				minimizeWindow();
+				ticksUntilMinimize = -1;
+			}
 		}
 	}
 
