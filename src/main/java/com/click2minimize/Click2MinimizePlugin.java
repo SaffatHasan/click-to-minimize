@@ -5,8 +5,8 @@ import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
-import net.runelite.api.events.GameTick;
 import net.runelite.api.events.MenuOptionClicked;
+import net.runelite.client.Notifier;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
@@ -37,10 +37,11 @@ public class Click2MinimizePlugin extends Plugin
 	@Inject
 	private Click2MinimizeConfig config;
 
+	@Inject
+	private Notifier notifier;
+
 	private Set<String> minimizeTargets = new HashSet<>();
 	private Set<String> cancelTargets = new HashSet<>();
-	
-	private int ticksUntilMinimize = -1;
 
 	@Override
 	protected void startUp() throws Exception
@@ -124,8 +125,7 @@ public class Click2MinimizePlugin extends Plugin
 
 		if (minimizeTargets.contains(actionString.toLowerCase()))
 		{
-			// Delay minimize by 1 game tick to see if a rejection chat message appears in the same tick
-			ticksUntilMinimize = 1;
+			minimizeWindow();
 		}
 	}
 
@@ -143,26 +143,8 @@ public class Click2MinimizePlugin extends Plugin
 		{
 			if (message.contains(cancelTarget))
 			{
-				if (ticksUntilMinimize > 0)
-				{
-					// Cancel the pending minimize
-					ticksUntilMinimize = -1;
-				}
+				notifier.notify("Click2Minimize action cancelled");
 				break;
-			}
-		}
-	}
-
-	@Subscribe
-	public void onGameTick(GameTick event)
-	{
-		if (ticksUntilMinimize > 0)
-		{
-			ticksUntilMinimize--;
-			if (ticksUntilMinimize == 0)
-			{
-				minimizeWindow();
-				ticksUntilMinimize = -1;
 			}
 		}
 	}
