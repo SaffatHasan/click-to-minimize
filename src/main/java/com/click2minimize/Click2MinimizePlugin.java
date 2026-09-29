@@ -139,6 +139,11 @@ public class Click2MinimizePlugin extends Plugin
 
 		String message = Text.removeTags(event.getMessage()).toLowerCase();
 
+		if (message.startsWith("click2minimize"))
+		{
+			return;
+		}
+
 		if (!isWindowMinimized())
 		{
 			return;
