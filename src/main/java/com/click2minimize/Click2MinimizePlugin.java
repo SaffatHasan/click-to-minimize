@@ -139,6 +139,11 @@ public class Click2MinimizePlugin extends Plugin
 
 		String message = Text.removeTags(event.getMessage()).toLowerCase();
 
+		if (!isWindowMinimized())
+		{
+			return;
+		}
+
 		for (String cancelTarget : cancelTargets)
 		{
 			if (message.contains(cancelTarget))
@@ -147,6 +152,20 @@ public class Click2MinimizePlugin extends Plugin
 				break;
 			}
 		}
+	}
+
+	private boolean isWindowMinimized()
+	{
+		Component canvas = client.getCanvas();
+		if (canvas != null)
+		{
+			Window window = SwingUtilities.windowForComponent(canvas);
+			if (window instanceof Frame)
+			{
+				return (((Frame) window).getExtendedState() & Frame.ICONIFIED) != 0;
+			}
+		}
+		return false;
 	}
 
 	public void minimizeWindow()
