@@ -148,6 +148,10 @@ public class Click2MinimizePlugin extends Plugin
 		{
 			if (message.contains(cancelTarget))
 			{
+				if (config.debugMode())
+				{
+					client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Click2Minimize Cancelled by rule '" + cancelTarget + "' from message: " + message, null);
+				}
 				notifier.notify("Click2Minimize action cancelled");
 				break;
 			}
