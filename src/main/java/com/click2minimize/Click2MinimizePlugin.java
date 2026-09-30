@@ -181,15 +181,17 @@ public class Click2MinimizePlugin extends Plugin
 
 	public void minimizeWindow()
 	{
-		Component canvas = client.getCanvas();
-		if (canvas != null)
-		{
-			Window window = SwingUtilities.windowForComponent(canvas);
-			if (window instanceof Frame)
+		SwingUtilities.invokeLater(() -> {
+			Component canvas = client.getCanvas();
+			if (canvas != null)
 			{
-				((Frame) window).setExtendedState(Frame.ICONIFIED);
+				Window window = SwingUtilities.windowForComponent(canvas);
+				if (window instanceof Frame)
+				{
+					((Frame) window).setExtendedState(Frame.ICONIFIED);
+				}
 			}
-		}
+		});
 	}
 
 	@Provides
