@@ -87,6 +87,7 @@ public class Click2MinimizePlugin extends Plugin
 		minimizeTargets = Arrays.stream(targetsString.split(","))
 			.map(String::trim)
 			.map(String::toLowerCase)
+			.filter(s -> !s.isEmpty())
 			.collect(Collectors.toSet());
 	}
 
@@ -102,6 +103,7 @@ public class Click2MinimizePlugin extends Plugin
 		cancelTargets = Arrays.stream(cancelString.split(","))
 			.map(String::trim)
 			.map(String::toLowerCase)
+			.filter(s -> !s.isEmpty())
 			.collect(Collectors.toSet());
 	}
 
